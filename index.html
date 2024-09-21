@@ -1,0 +1,114 @@
+<html></html>
+
+<head>
+</head>
+
+<body>
+    <canvas id="poo" height="600" width="600"></canvas>
+    <script>
+        function sign(lm, m, ce1, ce2, x, y) {
+            x1 = lm + x;
+            y1 = lm * m + y;
+            x2 = -lm + x;
+            y2 = y - lm * m;
+            if (((ce1 - x1) * (ce1 - x1) + (ce2 - y1) * (ce2 - y1)) > ((ce1 - x) * (ce1 - x) + (ce2 - y) * (ce2 - y))) {
+                //goes away from centre
+                return lm;
+            } else
+                return -lm;
+        }
+
+        function cone(ctx, x1, y1, x2, y2, ce1, ce2, color, opt) {
+            //draw petal
+            //find 3 and 4
+            let x3, y3, x4, y4, l;
+            l = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+            if (opt == 1)
+                l *= 1.6;
+            else
+                l *= 1;
+
+            // Adjust the size of blue
+            if (color == "blue" || color == "rgb(0,159,255)")
+                l *= 0.8;
+
+            if (y2 == y1) {
+                x3 = x1;
+                x4 = x2;
+                y3 = l + y1;
+                y4 = l + y2;
+            } else {
+                let m = -(x2 - x1) / (y2 - y1);
+                let lm = l / Math.sqrt(m * m + 1);
+
+                // Adjust based on distance from center
+                let si = sign(lm, m, ce1, ce2, x1, y1);
+                x3 = x1 + si;
+                y3 = y1 + si * m;
+                si = sign(lm, m, ce1, ce2, x2, y2);
+                x4 = x2 + si;
+                y4 = si * m + y2;
+            }
+
+            // Draw petal with a mix of curves
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            if (opt == 1) {
+                ctx.quadraticCurveTo((x1 + x3) / 2, (y1 + y3) / 2, (x3 + x4) / 2, (y3 + y4) / 2);
+                ctx.quadraticCurveTo((x2 + x4) / 2, (y2 + y4) / 2, x2, y2);
+            } else {
+                ctx.bezierCurveTo((x1 + 3 * x2) / 4, (y1 + 3 * y2) / 4, (x3 + 3 * x1) / 4, (y3 + 3 * y1) / 4, (x3 + x4) / 2, (y3 + y4) / 2);
+                ctx.bezierCurveTo((x4 + 3 * x2) / 4, (y4 + 3 * y2) / 4, (x2 + 3 * x1) / 4, (y2 + 3 * y1) / 4, x2, y2);
+            }
+            ctx.lineTo(x1, y1);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawCircle(ctx, radius, centerX, centerY, color) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Initialize canvas
+        let canvas = document.getElementById("poo");
+        let ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 600, 600);
+
+        // Center of the pattern
+        const ce1 = 300;
+        const ce2 = 300;
+        const degc = 15;
+        let start = 0;
+
+        // New color palette with gradients
+        const colors = ["#FF6347", "#FFD700", "#ADFF2F", "#87CEEB", "#FF69B4", "#7B68EE"];
+        
+        // Outer petal parameters
+        let r = 200;
+        while (r >= 0) {
+            for (let j = 0; j < colors.length; j++) {
+                for (let i = start; i <= 4 * Math.PI + start; i += 10 * Math.PI / 180) {
+                    let mod = 1;
+                    cone(ctx, mod * r * Math.cos(i) + ce1, mod * r * Math.sin(i) + ce2, mod * r * Math.cos(i + degc * Math.PI / 180) + ce1, mod * r * Math.sin(i + degc * Math.PI / 180) + ce2, ce1, ce2, colors[j], 2);
+                }
+                r -= 10;
+                start += 10 * Math.PI / 180;
+                if (r <= 0)
+                    break;
+            }
+        }
+
+        // Inner circles
+        for (let radius = 20; radius <= 100; radius += 20) {
+            drawCircle(ctx, radius, ce1, ce2, colors[radius / 20 % colors.length]);
+        }
+    </script>
+</body>
+
+</html>
